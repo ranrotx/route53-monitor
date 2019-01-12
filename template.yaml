@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+    route53-monitor
+
+    Monitor select recordsets for changes and notify the associated SNS topics
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+    Function:
+        Timeout: 3
+
+Resources:
+
+    Route53MonitorFunction:
+        Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+        Properties:
+            CodeUri: code/
+            Handler: app.lambda_handler
+            Runtime: python2.7
+            Events:
+                DnsUpdate:
+                    Type: CloudWatchEvent # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+                    Properties:
+                        Pattern:
+                            detail:
+                                eventSource: 
+                                - route53.amazonaws.com
+                                eventName: 
+                                - ChangeResourceRecordSets
+    
+
+
+Outputs:
+
+    Route53MonitorFunction:
+      Description: "Route 53 monitor function ARN"
+      Value: !GetAtt Route53MonitorFunction.Arn
+
+    Route53MonitorFunctionIamRole:
+      Description: "Implicit IAM Role created for Route 53 monitor function"
+      Value: !GetAtt Route53MonitorFunctionRole.Arn
